@@ -11,7 +11,7 @@ start() {
         printf 50 > $current;
     fi
 }
-stop () {
+stop() {
     ebegin "Saving screen brightness";
-    printf $current > $saved
+    printf $current > $saved;
 }
