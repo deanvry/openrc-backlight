@@ -1,0 +1,17 @@
+#!/sbin/openrc-run
+
+saved="/var/cache/backlight";
+current=$(cat "/sys/class/backlight/acpi_video0/brightness");
+
+start() {
+    ebegin "Restoring screen brightness";
+    if [ $saved -ne 0 ]; then
+        printf $saved > $current;
+    else
+        printf 50 > $current;
+    fi
+}
+stop () {
+    ebegin "Saving screen brightness";
+    printf $current > $saved
+}
