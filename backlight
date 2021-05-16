@@ -1,17 +1,36 @@
 #!/sbin/openrc-run
 
-saved="/var/cache/backlight";
-current=$(cat "/sys/class/backlight/acpi_video0/brightness");
+cachedir="/var/cache/backlight";
+cards="$(basename -a /sys/class/backlight/*)";
+
+if [ ! -d $cachedir ]; then
+    mkdir -p $cachedir;
+fi
+
+for card in $cards; do
+    if [ ! -f $cachedir/$card ]; then
+        cat /sys/class/backlight/$card/brightness > $cachedir/$card;
+    fi
+done
 
 start() {
     ebegin "Restoring screen brightness";
-    if [ $saved -ne 0 ]; then
-        printf $saved > $current;
-    else
-        printf 50 > $current;
-    fi
+    for card in $cards; do
+        local cache_value=$(cat $cachedir/$card);
+        if [ $cache_value -ne 0 ]; then
+            printf $cache_value > /sys/class/backlight/$card/brightness;
+        else
+            ewarn "Brightness should not zero, aborting ...";
+            return 3;
+        fi
+    done
+    return 0;
 }
+
 stop() {
     ebegin "Saving screen brightness";
-    printf $current > $saved;
+    for card in $cards; do
+        cat /sys/class/backlight/$card/brightness > $cachedir/$card;
+    done
+    return 0;
 }
